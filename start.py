@@ -3,7 +3,7 @@ import re
 import string
 import os
 
-path = r"C:/cv/Columbia.pdf"
+#path = r"../Columbia.pdf"
 
 def make_printable(text):
     result = ""
@@ -48,7 +48,7 @@ def other_section_detected(line):
 	keywords = ["Education", "University", "Experience", "Qualification", "Positions", "Publications", "Skills"]
 
 	for k in keywords:
-		if k in line:
+		if k.lower() in line.lower():
 			return True
 
 	return False
@@ -67,17 +67,23 @@ def separate_section(text):
 	return section
 
 
-dir_list =(os.listdir("C:\\cv\\"))
+dir_list =(os.listdir("C:\\Sallyino\\novy_parser\\zivotopisy\\"))
 
 for file in dir_list:
-    print (file)
-    print (find_email(pdf_to_str("C:\\cv\\"+ file)))
-    print (20*"-")
+	section = (separate_section(pdf_to_str("C:\\Sallyino\\novy_parser\\zivotopisy\\" + file)))
+	print (section)
+	#print (find_name(section))
+	print (find_email(section))
+	print (find_phone_number(section))
+	print ("###########################")
+    # print (file)
+    # print (find_email(pdf_to_str("C:\\cv\\"+ file)))
+    # print (20*"-")
 
-print (pdf_to_str(path))
-print (20*"-")
-print (find_email(pdf_to_str(path)))
-print (find_years_range(pdf_to_str(path)))
-print (separate_section(pdf_to_str(path)))
+# print (pdf_to_str(path))
+# print (20*"-")
+# print (find_email(pdf_to_str(path)))
+# print (find_years_range(pdf_to_str(path)))
+#print (separate_section(pdf_to_str(path)))
 
 
