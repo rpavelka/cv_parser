@@ -1,9 +1,15 @@
-import PyPDF2
 import re
 import string
 import os
+from pdfminer.pdfparser import PDFParser, PDFDocument
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.converter import PDFPageAggregator
+from pdfminer.layout import LAParams, LTTextBox, LTTextLine
+import logging
 
-path = r"C:/cv/Columbia.pdf"
+logging.basicConfig(level=logging.ERROR)
+
+path = r"C:/cv/CV24.pdf"
 
 def make_printable(text):
     result = ""
@@ -14,12 +20,25 @@ def make_printable(text):
 
 
 def pdf_to_str(file):
-    pdf = open(file, "rb")
-    reader = PyPDF2.PdfFileReader(pdf)
+    fp = open(file, 'rb')
+    parser = PDFParser(fp)
+    doc = PDFDocument()
+    parser.set_document(doc)
+    doc.set_parser(parser)
+    doc.initialize('')
+    rsrcmgr = PDFResourceManager()
+    laparams = LAParams()
+    device = PDFPageAggregator(rsrcmgr, laparams=laparams)
+    interpreter = PDFPageInterpreter(rsrcmgr, device)
+    # Process each page contained in the document.
 
     text = ""
-    for x in range(1):
-        text +=  ((reader.getPage(x)).extractText())
+    for page in doc.get_pages():
+        interpreter.process_page(page)
+        layout = device.get_result()
+        for lt_obj in layout:
+            if isinstance(lt_obj, LTTextBox) or isinstance(lt_obj, LTTextLine):
+                text += lt_obj.get_text()
 
     return make_printable(text).strip()
 
@@ -31,53 +50,65 @@ def find_email(text):
 
 
 def find_phone_number(text):
-    pattern = "[\d\-\(\) ]{9,}"
+    pattern = "[\d\-\(\) \+]{9,}"
 
-    return (re.findall(pattern, text))
+    result = (re.findall(pattern, text))
+    final = []
+
+    for number in result:
+        print (number)
+        number = number.strip()
+        if not "  " in number:
+            print (number)
+            number = number.replace(" ", "")
+            print (number)
+            number = number.replace("-", "")
+            print (number)
+            if len(number) >= 9:
+                final.append(number)
+
+    return final
 
 
 def find_years_range(line):
-	pattern = re.compile("\d{4} ?-? ?\d{4}")
-	if (pattern.search(line) is not None):
-		return True
+    pattern = re.compile("\d{4} ?-? ?\d{4}")
+    if (pattern.search(line) is not None):
+        return True
 
-	return False
+    return False
 
 
 def other_section_detected(line):
-	keywords = ["Education", "University", "Experience", "Qualification", "Positions", "Publications", "Skills"]
+    keywords = ["Education", "University", "Experience", "Qualification", "Positions", "Publications", "Skills"]
 
-	for k in keywords:
-		if k in line:
-			return True
+    for k in keywords:
+        if k in line:
+            return True
 
-	return False
+    return False
 
 
 def separate_section(text):
-	lines = text.splitlines()
-	section = ""
+    lines = text.splitlines()
+    section = ""
 
-	for line in lines:
-		if (not other_section_detected(line) and not find_years_range(line)):
-			section += line
-		else:
-			break
+    for line in lines:
+        if (not other_section_detected(line) and not find_years_range(line)):
+            section += line
+        else:
+            break
 
-	return section
+    return section
 
 
 dir_list =(os.listdir("C:\\cv\\"))
 
 for file in dir_list:
     print (file)
-    print (find_email(pdf_to_str("C:\\cv\\"+ file)))
+    print (separate_section(pdf_to_str("C:\\cv\\"+ file)))
     print (20*"-")
 
 print (pdf_to_str(path))
 print (20*"-")
 print (find_email(pdf_to_str(path)))
 print (find_years_range(pdf_to_str(path)))
-print (separate_section(pdf_to_str(path)))
-
-
