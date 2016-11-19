@@ -17,7 +17,7 @@ def pdf_to_str(file):
     reader = PyPDF2.PdfFileReader(pdf)
 
     text = ""
-    for x in range(reader.numPages):
+    for x in range(1):
         text +=  ((reader.getPage(x)).extractText())
 
     return make_printable(text)
@@ -28,8 +28,13 @@ def find_email(text):
 
     return (re.findall(pattern, text))
 
+def find_years_range(text):
+	pattern = "\d{4} ?-? ?\d{4}"
+	return (re.findall(pattern, text))
+
 
 print (pdf_to_str(path))
-print (20*"-")
-print (find_email(pdf_to_str(path)))
+#print (20*"-")
+#print (find_email(pdf_to_str(path)))
+print (find_years_range(pdf_to_str(path)))
 
