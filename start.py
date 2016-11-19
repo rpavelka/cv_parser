@@ -32,9 +32,33 @@ def find_years_range(text):
 	pattern = "\d{4} ?-? ?\d{4}"
 	return (re.findall(pattern, text))
 
+def other_section_detected(line):
+	keywords = ["Education", "University", "Experience"]
 
-print (pdf_to_str(path))
+	for k in keywords:
+		if k in line:
+			return True
+
+	return False
+
+def separate_section(text):
+	lines = text.splitlines()
+	section = ""
+
+	for line in lines:
+		if (not other_section_detected(line)):
+			section += line
+		else:
+			break
+
+	return section
+
+
+
+
+#print (pdf_to_str(path))
 #print (20*"-")
 #print (find_email(pdf_to_str(path)))
-print (find_years_range(pdf_to_str(path)))
+#print (find_years_range(pdf_to_str(path)))
+print (separate_section(pdf_to_str(path)))
 
