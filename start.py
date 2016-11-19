@@ -1,8 +1,9 @@
 import PyPDF2
 import re
 import string
+import os
 
-path = r"..\Columbia.pdf"
+path = r"C:/cv/Columbia.pdf"
 
 def make_printable(text):
     result = ""
@@ -20,7 +21,7 @@ def pdf_to_str(file):
     for x in range(reader.numPages):
         text +=  ((reader.getPage(x)).extractText())
 
-    return make_printable(text)
+    return make_printable(text).strip()
 
 
 def find_email(text):
@@ -28,8 +29,25 @@ def find_email(text):
 
     return (re.findall(pattern, text))
 
+def find_phone_number(text):
+    pattern = "[\d\-\(\) ]{9,}"
+
+    return (re.findall(pattern, text))
 
 print (pdf_to_str(path))
+
 print (20*"-")
 print (find_email(pdf_to_str(path)))
+print (20*"-")
+print (find_phone_number(pdf_to_str(path)))
+
+dir_list =(os.listdir("C:\\cv\\"))
+
+for file in dir_list:
+    print (file)
+    print (find_email(pdf_to_str("C:\\cv\\"+ file)))
+    print (20*"-")
+
+
+
 
