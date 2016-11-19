@@ -5,11 +5,12 @@ import string
 path = r"..\Columbia.pdf"
 
 def make_printable(text):
-	result = ""
-	for letter in text:
-		if (letter in string.printable):
-			result += letter
-	return result
+    result = ""
+    for letter in text:
+        if (letter in string.printable):
+            result += letter
+    return result
+
 
 def pdf_to_str(file):
     pdf = open(file, "rb")
@@ -31,3 +32,4 @@ def find_email(text):
 print (pdf_to_str(path))
 print (20*"-")
 print (find_email(pdf_to_str(path)))
+
