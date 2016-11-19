@@ -2,7 +2,7 @@ import PyPDF2
 import re
 import string
 
-path = r"C:\Sallyino\CVParser\Columbia.pdf"
+path = r"..\Columbia.pdf"
 
 def make_printable(text):
 	result = ""
