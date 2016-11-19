@@ -1,7 +1,15 @@
 import PyPDF2
 import re
+import string
 
-path = "C:\\cv\\Columbia.pdf"
+path = r"C:\Sallyino\CVParser\Columbia.pdf"
+
+def make_printable(text):
+	result = ""
+	for letter in text:
+		if (letter in string.printable):
+			result += letter
+	return result
 
 def pdf_to_str(file):
     pdf = open(file, "rb")
@@ -11,7 +19,7 @@ def pdf_to_str(file):
     for x in range(reader.numPages):
         text +=  ((reader.getPage(x)).extractText())
 
-    return text
+    return make_printable(text)
 
 
 def find_email(text):
