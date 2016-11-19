@@ -28,12 +28,19 @@ def find_email(text):
 
     return (re.findall(pattern, text))
 
-def find_years_range(text):
-	pattern = "\d{4} ?-? ?\d{4}"
-	return (re.findall(pattern, text))
+# regexp = re.compile(r'ba[r|z|d]')
+# if regexp.search(word) is not None:
+#   print 'matched'
+
+def find_years_range(line):
+	pattern = re.compile("\d{4} ?-? ?\d{4}")
+	if (pattern.search(line) is not None):
+		return True
+
+	return False
 
 def other_section_detected(line):
-	keywords = ["Education", "University", "Experience"]
+	keywords = ["Education", "University", "Experience", "Qualification", "Positions", "Publications", "Skills"]
 
 	for k in keywords:
 		if k in line:
@@ -46,7 +53,7 @@ def separate_section(text):
 	section = ""
 
 	for line in lines:
-		if (not other_section_detected(line)):
+		if (not other_section_detected(line) and not find_years_range(line)):
 			section += line
 		else:
 			break
