@@ -1,15 +1,25 @@
 import PyPDF2
+import re
+
+path = "C:\\cv\\Columbia.pdf"
+
+def pdf_to_str(file):
+    pdf = open(file, "rb")
+    reader = PyPDF2.PdfFileReader(pdf)
+
+    text = ""
+    for x in range(reader.numPages):
+        text +=  ((reader.getPage(x)).extractText())
+
+    return text
 
 
-file = open("combinedminutes.pdf", "rb")
+def find_email(text):
+    pattern = "[^\s@]+@[^@\s]+\.[^@\s]+"
 
-reader = PyPDF2.PdfFileReader(file)
+    return (re.findall(pattern, text))
 
-print (reader.numPages)
 
-page = reader.getPage(0)
-
-print (page.extractText())
-
-for x in range(reader.numPages):
-    print ((reader.getPage(x)).extractText())
+print (pdf_to_str(path))
+print (20*"-")
+print (find_email(pdf_to_str(path)))
