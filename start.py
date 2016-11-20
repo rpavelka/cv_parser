@@ -8,11 +8,11 @@ from pdfminer.layout import LAParams, LTTextBox, LTTextLine
 import logging
 
 
-#path = r"../Columbia.pdf"
+
 
 logging.basicConfig(level=logging.ERROR)
 
-#path = r"C:/cv/CV24.pdf"
+
 
 
 def make_printable(text):
@@ -74,9 +74,13 @@ def find_phone_number(text):
     return final
 
 def find_name(text):
-    pattern = r"[A-Z][a-z]{1,15}\.? ([A-Z][a-z]{0,15}\.? ?){0,3}[A-Z]\D{1,15}"
-
-    return (re.findall(pattern, text))
+    #.*([A-Z]\D{1,15}\.?[ -](?:[A-Z]\D{0,15}\.? ?){0,3}[A-Z]\D{1,15})$
+    pattern = r"\W*([A-Z][A-Za-z]*\.? (?:[A-Z][A-Za-z]*\.? ?){0,3}[A-Z][A-Za-z]*)\s?"
+    name = re.findall(pattern, text)
+    if name:
+        return (name[0])
+    else:
+        return "N/A"
 
 
 def find_years_range(line):
@@ -129,17 +133,20 @@ def separate_section(text):
 
     return section
 
-
-dir_list =(os.listdir("C:\\Sallyino\\novy_parser\\zivotopisy\\"))
-
+path = "C:\\Sallyino\\novy_parser\\zivotopisy\\"
+dir_list =(os.listdir(path))
+#dir_list = [r"C:\Sallyino\novy_parser\zivotopisy\LSE5.pdf"]
 for file in dir_list:
-	section = (separate_section(pdf_to_str("C:\\Sallyino\\novy_parser\\zivotopisy\\" + file)))
-	print (section)
-	print (find_name(section))
-	print (find_email(section))
-	# print (find_phone_number(section))
-	print (find_jobs_and_education(pdf_to_str("C:\\Sallyino\\novy_parser\\zivotopisy\\" + file)))
-	print ("###########################")
+    print (file)
+    pdfText = pdf_to_str(path + file)
+    section = (separate_section(pdfText))
+    print (section)
+    print ("name: ")
+    print (find_name(section))
+#     print (find_email(section))
+# 	# print (find_phone_number(section))
+#     print (find_jobs_and_education(pdf_to_str("C:\\Sallyino\\novy_parser\\zivotopisy\\" + file)))
+    print ("###########################")
     # print (file)
     # print (find_email(pdf_to_str("C:\\cv\\"+ file)))
     # print (20*"-")
