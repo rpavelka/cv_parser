@@ -82,18 +82,11 @@ def find_name(text):
     else:
         return "N/A"
 
-
-def find_years_range(line):
-    pattern = re.compile("\d{4} ?-? ?\d{4}")
-    if (pattern.search(line) is not None):
-        return True
-
-    return False
-
 def find_year(line):
-    pattern = re.compile(r" (19)|(20)\d{2}[ -]")
-    if (pattern.search(line) is not None):
-        return True
+    pattern = r"([(19)(20)]\d{3})"
+    year = re.findall(pattern, line)
+    if year:
+        return year
 
     return False
 
@@ -101,16 +94,17 @@ def find_year(line):
 def find_jobs_and_education(text):
     lines = text.splitlines()
     result = ""
+    resultList = []
+    resultTuple = ()
 
     for i, line in enumerate(lines):
         if find_year(line):
-			# if i > 0:
-			# 	result += lines[i-1]
-            result += line + "\n"
-            if i < len(lines)-1:
-                result += lines[i + 1]
+            resultTuple = find_year(line), i
+            resultList.append(resultTuple)
+    sortedResultList = sorted(resultList)
+    lineWithLatestYear = sortedResultList[-1][1]
 
-    return result
+    return lines[lineWithLatestYear]
 
 def other_section_detected(line):
     keywordsEducation = ["Education", "University", "Qualification", "Training", "Courses"]
@@ -140,7 +134,10 @@ def separate_section(text):
 
     for line in lines:
         if (other_section_detected(line)):
-            sections[currentSectionName] = currentSectionContent
+            if currentSectionName in sections:
+                sections[currentSectionName] += currentSectionContent
+            else:
+                sections[currentSectionName] = currentSectionContent
             currentSectionContent = ""
             currentSectionName = other_section_detected(line)
             currentSectionContent += line + "\n"
@@ -155,21 +152,28 @@ dir_list =(os.listdir(path))
 for file in dir_list:
 
     pdfText = pdf_to_str(path + file)
+    #print (pdfText)
     SectionsDictionary = separate_section(pdfText)
     # print (separate_section(pdfText))
     # section = (separate_section(pdfText))
     # #print (section)
-    print ("name: ")
-    print (find_name(SectionsDictionary['ContactInformation']))
-    print ("email: ")
-    print (find_email(SectionsDictionary['ContactInformation']))
-    print ("phone: ")
-    print (find_phone_number(SectionsDictionary['ContactInformation']))
-    #print (find_jobs_and_education(pdfText))
-    print ("###########################")
+    # print ("name: ")
+    # print (find_name(SectionsDictionary['ContactInformation']))
+    # print ("email: ")
+    # print (find_email(SectionsDictionary['ContactInformation']))
+    # print ("phone: ")
+    # print (find_phone_number(SectionsDictionary['ContactInformation']))
+    print (80 * "#")
+    print ("latest job: ")
+    print (SectionsDictionary['Work'])
+    print (find_jobs_and_education(SectionsDictionary['Work']))
+    print ("latest school: ")
+    print (find_jobs_and_education(SectionsDictionary['Education']))
+    print (80 * "#")
     # print (file)
     # print (find_email(pdf_to_str("C:\\cv\\"+ file)))
     # print (20*"-")
+    #input()
 
 # print (pdf_to_str(path))
 # print (20*"-")
