@@ -103,8 +103,12 @@ def find_jobs_and_education(text):
     sortedResultList = sorted(resultList)
     lineWithLatestYear = sortedResultList[-1][1]
 
-    return lines[lineWithLatestYear]
+    if lineWithLatestYear < len(lines) - 1:
+        yearPlusOneLine = lines[lineWithLatestYear] + ";" + lines[lineWithLatestYear + 1]
+    else:
+        yearPlusOneLine = lines[lineWithLatestYear] + ";"
 
+    return yearPlusOneLine
 
 def other_section_detected(line):
     keywordsEducation = ["Education", "University", "Qualification", "Training", "Courses"]
@@ -196,12 +200,13 @@ def main():
     for file in dir_list:
         cvs_dict = dict()
         pdf_text = pdf_to_str(input + file)
-        #cvs_dict["name"] =  find_name(pdf_text)
-        cvs_dict["email"] =  find_email(pdf_text)
-        cvs_dict["phone_number"] =  find_phone_number(pdf_text)
+        sectionsDictionary = separate_section(pdf_text)
+        cvs_dict["name"] =  find_name(sectionsDictionary['ContactInformation'])
+        cvs_dict["email"] =  find_email(sectionsDictionary['ContactInformation'])
+        cvs_dict["phone_number"] =  find_phone_number(sectionsDictionary['ContactInformation'])
         #cvs_dict["address"] = TODO
-        #cvs_dict["last_education"] = TODO
-        #cvs_dict["last_profession"] = TODO
+        cvs_dict["last_education"] = find_jobs_and_education(sectionsDictionary['Education'])
+        cvs_dict["last_profession"] = find_jobs_and_education(sectionsDictionary['Work'])
 
         final_list.append(cvs_dict)
 
