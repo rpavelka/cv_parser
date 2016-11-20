@@ -100,11 +100,11 @@ def find_jobs_and_education(text):
 
 	for i, line in enumerate(lines):
 		if find_year(line):
-			if i > 0:
-				result += lines[i-1]
-			result += line
-			if i < len(lines)-1:
-				result += lines[i + 1]
+			# if i > 0:
+			# 	result += lines[i-1]
+			result += line + "\n"
+			# if i < len(lines)-1:
+			# 	result += lines[i + 1]
 
 	return result
 
@@ -123,7 +123,7 @@ def separate_section(text):
 
     for line in lines:
         if (not other_section_detected(line) and not find_years_range(line)):
-            section += line
+            section += line + "\n"
         else:
             break
 
@@ -134,8 +134,8 @@ dir_list =(os.listdir("C:\\Sallyino\\novy_parser\\zivotopisy\\"))
 
 for file in dir_list:
 	section = (separate_section(pdf_to_str("C:\\Sallyino\\novy_parser\\zivotopisy\\" + file)))
-	# print (section)
-	# print (find_name(section))
+	print (section)
+	print (find_name(section))
 	print (find_email(section))
 	# print (find_phone_number(section))
 	print (find_jobs_and_education(pdf_to_str("C:\\Sallyino\\novy_parser\\zivotopisy\\" + file)))
