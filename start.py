@@ -73,62 +73,78 @@ def find_phone_number(text):
 
 
 def find_name(text):
-    pattern = r"[A-Z][a-z]{1,15}\.? ([A-Z][a-z]{0,15}\.? ?){0,3}[A-Z]\D{1,15}"
-
-    return (re.findall(pattern, text))
-
-
-def find_years_range(line):
-    pattern = re.compile("\d{4} ?-? ?\d{4}")
-    if (pattern.search(line) is not None):
-        return True
-
-    return False
+    #.*([A-Z]\D{1,15}\.?[ -](?:[A-Z]\D{0,15}\.? ?){0,3}[A-Z]\D{1,15})$
+    pattern = r"\W*([A-Z][A-Za-z]*\.? (?:[A-Z][A-Za-z]*\.? ?){0,3}[A-Z][A-Za-z]*)\s?"
+    name = re.findall(pattern, text)
+    if name:
+        return (name[0])
+    else:
+        return "N/A"
 
 
 def find_year(line):
-    pattern = re.compile(r" (19)|(20)\d{2}[ -]")
-    if (pattern.search(line) is not None):
-        return True
-
+    pattern = r"([(19)(20)]\d{3})"
+    year = re.findall(pattern, line)
+    if year:
+        return year
     return False
 
 
 def find_jobs_and_education(text):
     lines = text.splitlines()
     result = ""
+    resultList = []
+    resultTuple = ()
 
     for i, line in enumerate(lines):
         if find_year(line):
-            # if i > 0:
-            # 	result += lines[i-1]
-            result += line + "\n"
-            # if i < len(lines)-1:
-            # 	result += lines[i + 1]
+            resultTuple = find_year(line), i
+            resultList.append(resultTuple)
+    sortedResultList = sorted(resultList)
+    lineWithLatestYear = sortedResultList[-1][1]
 
-    return result
+    return lines[lineWithLatestYear]
 
 
 def other_section_detected(line):
-    keywords = ["Education", "University", "Experience", "Qualification", "Positions", "Publications", "Skills"]
+    keywordsEducation = ["Education", "University", "Qualification", "Training", "Courses"]
+    keywordsWork = ["Experience", "Positions", "Work", "Job", "Professional", "Profession"]
+    keywordsOther = ["Publications", "Skills", "Reference"]
 
-    for k in keywords:
+    for k in keywordsEducation:
         if k.lower() in line.lower():
-            return True
+            return "Education"
+
+    for k in keywordsWork:
+        if k.lower() in line.lower():
+            return "Work"
+
+    for k in keywordsOther:
+        if k.lower() in line.lower():
+            return "Other"
+
     return False
 
 
 def separate_section(text):
     lines = text.splitlines()
-    section = ""
+    sections = {}
+    currentSectionName = "ContactInformation"
+    currentSectionContent = ""
 
     for line in lines:
-        if (not other_section_detected(line) and not find_years_range(line)):
-            section += line + "\n"
+        if (other_section_detected(line)):
+            if currentSectionName in sections:
+                sections[currentSectionName] += currentSectionContent
+            else:
+                sections[currentSectionName] = currentSectionContent
+            currentSectionContent = ""
+            currentSectionName = other_section_detected(line)
+            currentSectionContent += line + "\n"
         else:
-            break
+            currentSectionContent += line + "\n"
 
-    return section
+    return sections
 
 
 def create_resume_output(list_of_dict, file_name):
@@ -142,8 +158,6 @@ def create_resume_output(list_of_dict, file_name):
         row_list= [row.get(x, "N/A") for x in header]
         row_list = [(i if i else "N/A") for i in row_list]
         data.append(row_list)
-
-
 
     return write_csv(data,header,file_name)
 
@@ -196,3 +210,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
