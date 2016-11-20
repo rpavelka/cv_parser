@@ -1,24 +1,24 @@
+#! /usr/bin/env python3
+#-*- coding: utf-8 -*-
+
 import re
 import string
 import os
+import logging
+import argparse
 from pdfminer.pdfparser import PDFParser, PDFDocument
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LAParams, LTTextBox, LTTextLine
-import logging
-
-
 
 
 logging.basicConfig(level=logging.ERROR)
 
 
-
-
 def make_printable(text):
     result = ""
     for letter in text:
-        if (letter in string.printable):
+        if letter in string.printable:
             result += letter
     return result
 
@@ -50,7 +50,9 @@ def pdf_to_str(file):
 def find_email(text):
     pattern = "[^\s@]+@[^@\s]+\.[^@\s]+"
 
-    return (re.findall(pattern, text))
+    emails = ";".join(re.findall(pattern, text))
+
+    return emails
 
 
 def find_phone_number(text):
@@ -60,18 +62,15 @@ def find_phone_number(text):
     final = []
 
     for number in result:
-        print (number)
         number = number.strip()
         if not "  " in number:
-            print (number)
             number = number.replace(" ", "")
-            print (number)
             number = number.replace("-", "")
-            print (number)
             if len(number) >= 9:
                 final.append(number)
 
-    return final
+    return ";".join(final)
+
 
 def find_name(text):
     #.*([A-Z]\D{1,15}\.?[ -](?:[A-Z]\D{0,15}\.? ?){0,3}[A-Z]\D{1,15})$
@@ -82,12 +81,12 @@ def find_name(text):
     else:
         return "N/A"
 
+
 def find_year(line):
     pattern = r"([(19)(20)]\d{3})"
     year = re.findall(pattern, line)
     if year:
         return year
-
     return False
 
 
@@ -105,6 +104,7 @@ def find_jobs_and_education(text):
     lineWithLatestYear = sortedResultList[-1][1]
 
     return lines[lineWithLatestYear]
+
 
 def other_section_detected(line):
     keywordsEducation = ["Education", "University", "Qualification", "Training", "Courses"]
@@ -146,37 +146,68 @@ def separate_section(text):
 
     return sections
 
-path = "C:\\Sallyino\\novy_parser\\zivotopisy\\"
-dir_list =(os.listdir(path))
-#dir_list = [r"C:\Sallyino\novy_parser\zivotopisy\LSE5.pdf"]
-for file in dir_list:
 
-    pdfText = pdf_to_str(path + file)
-    #print (pdfText)
-    SectionsDictionary = separate_section(pdfText)
-    # print (separate_section(pdfText))
-    # section = (separate_section(pdfText))
-    # #print (section)
-    # print ("name: ")
-    # print (find_name(SectionsDictionary['ContactInformation']))
-    # print ("email: ")
-    # print (find_email(SectionsDictionary['ContactInformation']))
-    # print ("phone: ")
-    # print (find_phone_number(SectionsDictionary['ContactInformation']))
-    print (80 * "#")
-    print ("latest job: ")
-    print (SectionsDictionary['Work'])
-    print (find_jobs_and_education(SectionsDictionary['Work']))
-    print ("latest school: ")
-    print (find_jobs_and_education(SectionsDictionary['Education']))
-    print (80 * "#")
-    # print (file)
-    # print (find_email(pdf_to_str("C:\\cv\\"+ file)))
-    # print (20*"-")
-    #input()
+def create_resume_output(list_of_dict, file_name):
+    header = []
+    for row in list_of_dict:
+        for k in row:
+            if k not in header:
+                header.append(k)
+    data = []
+    for row in list_of_dict:
+        row_list= [row.get(x, "N/A") for x in header]
+        row_list = [(i if i else "N/A") for i in row_list]
+        data.append(row_list)
 
-# print (pdf_to_str(path))
-# print (20*"-")
-# print (find_email(pdf_to_str(path)))
-# print (find_years_range(pdf_to_str(path)))
-#print (separate_section(pdf_to_str(path)))
+    return write_csv(data,header,file_name)
+
+
+def write_csv(data, header, file_name):
+    header = [str(s).replace("'","").replace(",","") for s in header]
+    header = ['"{}"'.format(s) for s in header]
+    clean_data = []
+    for row in data:
+        clean_data.append([str(s).replace("'","").replace(",","") for s in row])
+
+    result = ",".join(header) + "\n"
+    for row in clean_data:
+        result += (",".join(['"{}"'.format(s) for s in row]))
+        result += "\n"
+
+    if not file_name:
+        print (result)
+    else:
+        with open(file_name, "w") as f:
+            f.write(result)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Script to parse PDF resumes, and create a csv file containing contact info')
+    parser.add_argument('path_to_cvs', help='Path to file with pdf which include cvs.')
+    parser.add_argument('--output_file_name','-o',default = None, help='Name of output file')
+
+    args = parser.parse_args()
+    input, output = args.path_to_cvs, args.output_file_name
+
+    dir_list =(os.listdir(input))
+
+    final_list = []
+
+    for file in dir_list:
+        cvs_dict = dict()
+        pdf_text = pdf_to_str(input + file)
+        #cvs_dict["name"] =  find_name(pdf_text)
+        cvs_dict["email"] =  find_email(pdf_text)
+        cvs_dict["phone_number"] =  find_phone_number(pdf_text)
+        #cvs_dict["address"] = TODO
+        #cvs_dict["last_education"] = TODO
+        #cvs_dict["last_profession"] = TODO
+
+        final_list.append(cvs_dict)
+
+    create_resume_output(final_list, output)
+
+
+if __name__ == "__main__":
+    main()
+
