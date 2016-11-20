@@ -91,61 +91,81 @@ def find_years_range(line):
     return False
 
 def find_year(line):
-	pattern = re.compile(r" (19)|(20)\d{2}[ -]")
-	if (pattern.search(line) is not None):
-		return True
+    pattern = re.compile(r" (19)|(20)\d{2}[ -]")
+    if (pattern.search(line) is not None):
+        return True
 
-	return False
+    return False
 
 
 def find_jobs_and_education(text):
-	lines = text.splitlines()
-	result = ""
+    lines = text.splitlines()
+    result = ""
 
-	for i, line in enumerate(lines):
-		if find_year(line):
+    for i, line in enumerate(lines):
+        if find_year(line):
 			# if i > 0:
 			# 	result += lines[i-1]
-			result += line + "\n"
-			# if i < len(lines)-1:
-			# 	result += lines[i + 1]
+            result += line + "\n"
+            if i < len(lines)-1:
+                result += lines[i + 1]
 
-	return result
+    return result
 
 def other_section_detected(line):
-    keywords = ["Education", "University", "Experience", "Qualification", "Positions", "Publications", "Skills"]
+    keywordsEducation = ["Education", "University", "Qualification", "Training", "Courses"]
+    keywordsWork = ["Experience", "Positions", "Work", "Job", "Professional", "Profession"]
+    keywordsOther = ["Publications", "Skills", "Reference"]
 
-    for k in keywords:
+    for k in keywordsEducation:
         if k.lower() in line.lower():
-            return True
+            return "Education"
+
+    for k in keywordsWork:
+        if k.lower() in line.lower():
+            return "Work"
+
+    for k in keywordsOther:
+        if k.lower() in line.lower():
+            return "Other"
+
     return False
 
 
 def separate_section(text):
     lines = text.splitlines()
-    section = ""
+    sections = {}
+    currentSectionName = "ContactInformation"
+    currentSectionContent = ""
 
     for line in lines:
-        if (not other_section_detected(line) and not find_years_range(line)):
-            section += line + "\n"
+        if (other_section_detected(line)):
+            sections[currentSectionName] = currentSectionContent
+            currentSectionContent = ""
+            currentSectionName = other_section_detected(line)
+            currentSectionContent += line + "\n"
         else:
-            break
+            currentSectionContent += line + "\n"
 
-    return section
+    return sections
 
 path = "C:\\Sallyino\\novy_parser\\zivotopisy\\"
 dir_list =(os.listdir(path))
 #dir_list = [r"C:\Sallyino\novy_parser\zivotopisy\LSE5.pdf"]
 for file in dir_list:
-    print (file)
+
     pdfText = pdf_to_str(path + file)
-    section = (separate_section(pdfText))
-    print (section)
+    SectionsDictionary = separate_section(pdfText)
+    # print (separate_section(pdfText))
+    # section = (separate_section(pdfText))
+    # #print (section)
     print ("name: ")
-    print (find_name(section))
-#     print (find_email(section))
-# 	# print (find_phone_number(section))
-#     print (find_jobs_and_education(pdf_to_str("C:\\Sallyino\\novy_parser\\zivotopisy\\" + file)))
+    print (find_name(SectionsDictionary['ContactInformation']))
+    print ("email: ")
+    print (find_email(SectionsDictionary['ContactInformation']))
+    print ("phone: ")
+    print (find_phone_number(SectionsDictionary['ContactInformation']))
+    #print (find_jobs_and_education(pdfText))
     print ("###########################")
     # print (file)
     # print (find_email(pdf_to_str("C:\\cv\\"+ file)))
